@@ -1,5 +1,10 @@
 # Version History
 
+## 0.1.5
+
+- Made app-side key labels and layer names use a stable device identity instead of a volatile HID path fallback.
+- Added broader fallback lookup and migration so previously saved labels can be recovered and re-saved under the stable keys.
+
 ## 0.1.4
 
 - Fixed the matrix-position mapping so keys are placed consistently as `1-4`, `5-8`, `9-12`.

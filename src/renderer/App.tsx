@@ -294,10 +294,14 @@ export function App() {
     window.localStorage.setItem(LAYER_TARGET_STORAGE_KEY, JSON.stringify(layerTargets));
   }, [layerTargets]);
 
+  const getStableDeviceStorageId = () =>
+    workspace
+      ? workspace.device.serialNumber?.trim() || `${workspace.device.vendorId.toString(16)}:${workspace.device.productId.toString(16)}`
+      : "";
   const getLabelKey = (layerId: string | undefined, keyId: string | undefined) =>
-    workspace && selectedProfile && layerId && keyId
+    selectedProfile && layerId && keyId
       ? [
-          workspace.device.serialNumber ?? workspace.device.id,
+          getStableDeviceStorageId(),
           selectedProfile.id,
           layerId,
           keyId
@@ -305,23 +309,58 @@ export function App() {
       : "";
   const getLegacyLabelKey = (layerId: string | undefined, keyId: string | undefined) =>
     layerId && keyId ? `${layerId}:${keyId}` : "";
+  const findStoredLabel = (layerId: string | undefined, keyId: string | undefined) => {
+    if (!layerId || !keyId) {
+      return undefined;
+    }
+
+    const exactMatches = [
+      labelOverrides[getLabelKey(layerId, keyId)],
+      labelOverrides[getLegacyLabelKey(layerId, keyId)]
+    ];
+    const exact = exactMatches.find((value) => typeof value === "string" && value.trim());
+    if (exact) {
+      return exact;
+    }
+
+    const profileSuffix = selectedProfile ? `:${selectedProfile.id}:${layerId}:${keyId}` : "";
+    const layerSuffix = `:${layerId}:${keyId}`;
+    const migratedKey = Object.keys(labelOverrides).find((storedKey) =>
+      (profileSuffix && storedKey.endsWith(profileSuffix)) || storedKey.endsWith(layerSuffix)
+    );
+    return migratedKey ? labelOverrides[migratedKey] : undefined;
+  };
 
   const getDisplayLabel = (layerId: string | undefined, key: KeyBinding | undefined) => {
-    const override =
-      labelOverrides[getLabelKey(layerId, key?.id)] ??
-      labelOverrides[getLegacyLabelKey(layerId, key?.id)];
+    const override = findStoredLabel(layerId, key?.id);
     return override || key?.legend || "Key";
   };
   const getLayerNameKey = (layerId: string | undefined) =>
-    workspace && selectedProfile && layerId
+    selectedProfile && layerId
       ? [
-          workspace.device.serialNumber ?? workspace.device.id,
+          getStableDeviceStorageId(),
           selectedProfile.id,
           layerId
         ].join(":")
       : "";
+  const findStoredLayerName = (layerId: string | undefined) => {
+    if (!layerId) {
+      return undefined;
+    }
+
+    const exact = layerNameOverrides[getLayerNameKey(layerId)];
+    if (exact?.trim()) {
+      return exact;
+    }
+
+    const profileSuffix = selectedProfile ? `:${selectedProfile.id}:${layerId}` : "";
+    const migratedKey = Object.keys(layerNameOverrides).find((storedKey) =>
+      profileSuffix ? storedKey.endsWith(profileSuffix) : false
+    );
+    return migratedKey ? layerNameOverrides[migratedKey] : undefined;
+  };
   const getDisplayLayerName = (layer: DeviceLayer | undefined) =>
-    layerNameOverrides[getLayerNameKey(layer?.id)] || layer?.name || "Layer";
+    findStoredLayerName(layer?.id) || layer?.name || "Layer";
 
   const getBoardLabel = (key: KeyBinding | undefined) => key?.legend || "Key";
   const getLayerTarget = (layerId: string | undefined): TextLayoutTarget =>
@@ -434,8 +473,12 @@ export function App() {
         for (const key of layer.keys) {
           const legacyKey = getLegacyLabelKey(layer.id, key.id);
           const nextKey = getLabelKey(layer.id, key.id);
-          if (legacyKey && nextKey && current[legacyKey] && !current[nextKey]) {
-            next[nextKey] = current[legacyKey];
+          const recoveredValue =
+            current[nextKey] ??
+            current[legacyKey] ??
+            findStoredLabel(layer.id, key.id);
+          if (nextKey && recoveredValue && !current[nextKey]) {
+            next[nextKey] = recoveredValue;
             changed = true;
           }
         }
@@ -443,7 +486,29 @@ export function App() {
 
       return changed ? next : current;
     });
-  }, [workspace?.device.id, selectedProfile?.id]);
+  }, [workspace?.device.serialNumber, workspace?.device.vendorId, workspace?.device.productId, selectedProfile?.id]);
+
+  useEffect(() => {
+    if (!workspace || !selectedProfile) {
+      return;
+    }
+
+    setLayerNameOverrides((current) => {
+      let changed = false;
+      const next = { ...current };
+
+      for (const layer of selectedProfile.layers) {
+        const nextKey = getLayerNameKey(layer.id);
+        const recoveredValue = current[nextKey] ?? findStoredLayerName(layer.id);
+        if (nextKey && recoveredValue && !current[nextKey]) {
+          next[nextKey] = recoveredValue;
+          changed = true;
+        }
+      }
+
+      return changed ? next : current;
+    });
+  }, [workspace?.device.serialNumber, workspace?.device.vendorId, workspace?.device.productId, selectedProfile?.id]);
 
   useEffect(() => {
     setLayerNameDraft(getDisplayLayerName(selectedLayer));
