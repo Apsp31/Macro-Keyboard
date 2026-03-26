@@ -1,5 +1,10 @@
 # Version History
 
+## 0.1.4
+
+- Fixed the matrix-position mapping so keys are placed consistently as `1-4`, `5-8`, `9-12`.
+- Removed stale mock-era row/column assignments that caused keys such as `Key 12` to appear in the wrong tile position.
+
 ## 0.1.3
 
 - Moved layer-wide controls behind an explicit `Edit Layer` toggle near the layer tabs.

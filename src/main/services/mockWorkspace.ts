@@ -13,18 +13,17 @@ function action(id: string, type: MacroAction["type"], label: string, value: str
 
 function key(
   index: number,
-  row: number,
-  column: number,
   legend: string,
   color: string,
   actions: MacroAction[]
 ): KeyBinding {
+  const matrixIndex = index - 1;
   return {
     id: `key-${index}`,
     index,
-    matrixIndex: index - 1,
-    row,
-    column,
+    matrixIndex,
+    row: Math.floor(matrixIndex / 4),
+    column: matrixIndex % 4,
     legend,
     color,
     actions
@@ -54,43 +53,43 @@ function workLayer(): DeviceLayer {
       speed: 2
     },
     keys: [
-      key(1, 0, 0, "Mail", "#fb7185", [
+      key(1, "Mail", "#fb7185", [
         action("1-open", "launch", "Open Outlook", "outlook.exe"),
         action("1-delay", "delay", "Wait 120ms", "120")
       ]),
-      key(2, 0, 1, "Daily", "#f59e0b", [
+      key(2, "Daily", "#f59e0b", [
         action("2-open", "launch", "Open Teams", "ms-teams.exe"),
         action("2-text", "text", "Type standup template", "Yesterday / Today / Blockers")
       ]),
-      key(3, 0, 2, "Build", "#22c55e", [
+      key(3, "Build", "#22c55e", [
         action("3-chord", "chord", "Send Ctrl+Shift+B", "Ctrl+Shift+B")
       ]),
-      key(4, 1, 0, "Docs", "#38bdf8", [
+      key(4, "Docs", "#38bdf8", [
         action("4-launch", "launch", "Open browser", "chrome.exe"),
         action("4-text", "text", "Open docs bookmark", "docs")
       ]),
-      key(5, 1, 1, "Mute", "#14b8a6", [
+      key(5, "Mute", "#14b8a6", [
         action("5-media", "media", "Toggle microphone mute", "mic-mute")
       ]),
-      key(6, 1, 2, "Snip", "#8b5cf6", [
+      key(6, "Snip", "#8b5cf6", [
         action("6-chord", "chord", "Send Win+Shift+S", "Win+Shift+S")
       ]),
-      key(7, 1, 3, "Term", "#f97316", [
+      key(7, "Term", "#f97316", [
         action("7-launch", "launch", "Open Windows Terminal", "wt.exe")
       ]),
-      key(8, 2, 0, "Copy", "#e879f9", [
+      key(8, "Copy", "#e879f9", [
         action("8-chord", "chord", "Send Ctrl+C", "Ctrl+C")
       ]),
-      key(9, 2, 1, "Paste", "#2dd4bf", [
+      key(9, "Paste", "#2dd4bf", [
         action("9-chord", "chord", "Send Ctrl+V", "Ctrl+V")
       ]),
-      key(10, 2, 2, "Lock", "#64748b", [
+      key(10, "Lock", "#64748b", [
         action("10-system", "system", "Lock workstation", "lock")
       ]),
-      key(11, 2, 3, "Search", "#60a5fa", [
+      key(11, "Search", "#60a5fa", [
         action("11-chord", "chord", "Send Win+S", "Win+S")
       ]),
-      key(12, 0, 3, "Notes", "#f43f5e", [
+      key(12, "Notes", "#f43f5e", [
         action("12-launch", "launch", "Open OneNote", "onenote.exe")
       ])
     ],
@@ -126,41 +125,41 @@ function streamLayer(): DeviceLayer {
       speed: 5
     },
     keys: [
-      key(1, 0, 0, "Scene 1", "#f97316", [
+      key(1, "Scene 1", "#f97316", [
         action("s1-launch", "launch", "Focus OBS", "obs64.exe"),
         action("s1-key", "keystroke", "Send F13", "F13")
       ]),
-      key(2, 0, 1, "BRB", "#ef4444", [
+      key(2, "BRB", "#ef4444", [
         action("s2-key", "keystroke", "Send F14", "F14")
       ]),
-      key(3, 0, 2, "Marker", "#84cc16", [
+      key(3, "Marker", "#84cc16", [
         action("s3-key", "keystroke", "Send F15", "F15")
       ]),
-      key(4, 1, 0, "Clip", "#0ea5e9", [
+      key(4, "Clip", "#0ea5e9", [
         action("s4-key", "keystroke", "Send F16", "F16")
       ]),
-      key(5, 1, 1, "Chat", "#06b6d4", [
+      key(5, "Chat", "#06b6d4", [
         action("s5-launch", "launch", "Open Discord", "discord.exe")
       ]),
-      key(6, 1, 2, "Music", "#a78bfa", [
+      key(6, "Music", "#a78bfa", [
         action("s6-media", "media", "Play or pause", "play-pause")
       ]),
-      key(7, 1, 3, "Replay", "#22c55e", [
+      key(7, "Replay", "#22c55e", [
         action("s7-key", "keystroke", "Replay buffer", "F17")
       ]),
-      key(8, 2, 0, "Mic", "#14b8a6", [
+      key(8, "Mic", "#14b8a6", [
         action("s8-key", "keystroke", "Mute mic", "F18")
       ]),
-      key(9, 2, 1, "Cam", "#38bdf8", [
+      key(9, "Cam", "#38bdf8", [
         action("s9-key", "keystroke", "Toggle camera scene", "F19")
       ]),
-      key(10, 2, 2, "Raid", "#ef4444", [
+      key(10, "Raid", "#ef4444", [
         action("s10-text", "text", "Raid message", "/raid Starting the raid now!")
       ]),
-      key(11, 2, 3, "Marker+", "#f59e0b", [
+      key(11, "Marker+", "#f59e0b", [
         action("s11-key", "keystroke", "Add timestamp marker", "F20")
       ]),
-      key(12, 0, 3, "Sponsor", "#06b6d4", [
+      key(12, "Sponsor", "#06b6d4", [
         action("s12-text", "text", "Sponsor message", "Thanks to today's sponsor!")
       ])
     ],
@@ -196,40 +195,40 @@ function toolsLayer(): DeviceLayer {
       speed: 4
     },
     keys: [
-      key(1, 0, 0, "Undo", "#f59e0b", [
+      key(1, "Undo", "#f59e0b", [
         action("t1", "chord", "Send Ctrl+Z", "Ctrl+Z")
       ]),
-      key(2, 0, 1, "Redo", "#84cc16", [
+      key(2, "Redo", "#84cc16", [
         action("t2", "chord", "Send Ctrl+Y", "Ctrl+Y")
       ]),
-      key(3, 0, 2, "Task", "#0ea5e9", [
+      key(3, "Task", "#0ea5e9", [
         action("t3", "chord", "Open Task View", "Win+Tab")
       ]),
-      key(4, 0, 3, "Desk", "#38bdf8", [
+      key(4, "Desk", "#38bdf8", [
         action("t4", "chord", "New desktop", "Win+Ctrl+D")
       ]),
-      key(5, 1, 0, "Lock", "#64748b", [
+      key(5, "Lock", "#64748b", [
         action("t5", "system", "Lock workstation", "lock")
       ]),
-      key(6, 1, 1, "Emoji", "#f472b6", [
+      key(6, "Emoji", "#f472b6", [
         action("t6", "chord", "Open emoji panel", "Win+.")
       ]),
-      key(7, 1, 2, "Paste+", "#a78bfa", [
+      key(7, "Paste+", "#a78bfa", [
         action("t7", "chord", "Paste without formatting", "Ctrl+Shift+V")
       ]),
-      key(8, 1, 3, "Color", "#fb7185", [
+      key(8, "Color", "#fb7185", [
         action("t8", "launch", "Open PowerToys Color Picker", "PowerToys.ColorPicker")
       ]),
-      key(9, 2, 0, "Calc", "#14b8a6", [
+      key(9, "Calc", "#14b8a6", [
         action("t9", "launch", "Open Calculator", "calc.exe")
       ]),
-      key(10, 2, 1, "Files", "#2dd4bf", [
+      key(10, "Files", "#2dd4bf", [
         action("t10", "launch", "Open File Explorer", "explorer.exe")
       ]),
-      key(11, 2, 2, "Search", "#60a5fa", [
+      key(11, "Search", "#60a5fa", [
         action("t11", "chord", "Windows search", "Win+S")
       ]),
-      key(12, 2, 3, "Sleep", "#ef4444", [
+      key(12, "Sleep", "#ef4444", [
         action("t12", "system", "Sleep PC", "sleep")
       ])
     ],
