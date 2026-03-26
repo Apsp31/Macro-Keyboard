@@ -1,6 +1,6 @@
 /// <reference types="vite/client" />
 
-import type { AppSettings, DeviceWorkspace } from "../shared/types";
+import type { AppSettings, DeviceWorkspace, LoadBoardProfileResult, SaveBoardProfileRequest, SavedBoardProfile } from "../shared/types";
 
 interface MacroDeckApi {
   listWorkspaces(): Promise<DeviceWorkspace[]>;
@@ -11,6 +11,9 @@ interface MacroDeckApi {
   duplicateLayer(request: import("../shared/types").DeviceDuplicateLayerRequest): Promise<DeviceWorkspace[]>;
   loadSettings(): Promise<AppSettings>;
   saveSettings(settings: AppSettings): Promise<AppSettings>;
+  listProfiles(): Promise<SavedBoardProfile[]>;
+  saveProfile(request: SaveBoardProfileRequest): Promise<SavedBoardProfile[]>;
+  loadProfile(profileId: string): Promise<LoadBoardProfileResult>;
 }
 
 declare global {

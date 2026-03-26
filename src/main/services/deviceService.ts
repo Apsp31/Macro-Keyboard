@@ -3,6 +3,7 @@ import type {
   MacroAction,
   DeviceMacroStroke,
   DeviceReadResult,
+  SavedBoardProfile,
   DeviceSummary,
   DeviceWorkspace,
   DeviceWriteBindingRequest,
@@ -90,6 +91,11 @@ export class DeviceService {
 
   async duplicateLayer(request: DeviceDuplicateLayerRequest): Promise<DeviceWorkspace[]> {
     await this.pythonBackend.duplicateLayer(request);
+    return this.readBoardWorkspace();
+  }
+
+  async applySavedProfile(profile: SavedBoardProfile): Promise<DeviceWorkspace[]> {
+    await this.pythonBackend.applyProfile(profile.layers);
     return this.readBoardWorkspace();
   }
 

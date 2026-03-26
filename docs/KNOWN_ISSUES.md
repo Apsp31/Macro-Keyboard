@@ -4,7 +4,6 @@ This file is the local issue tracker for the project until a remote Git hosting 
 
 ## Open
 
-- Add real profile management: save the current board state to local profiles, reload a saved profile, and write a saved profile back to the board.
 - Mouse-style OEM actions are not yet implemented as first-class programmable actions in the UI/backend.
 - Layer names and key labels are app-side metadata only; the keyboard itself stores bindings, not labels.
 - Text macros that include symbols depend on the selected target keyboard layout and are not universally portable across all host layouts.

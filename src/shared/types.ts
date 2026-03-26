@@ -138,3 +138,24 @@ export interface AppSettings {
   layerNameOverrides: Record<string, string>;
   layerTargets: Record<string, TextLayoutTarget>;
 }
+
+export interface SavedBoardProfile {
+  id: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+  layers: Record<string, Record<string, DeviceMacroStroke[]>>;
+  settings: AppSettings;
+}
+
+export interface SaveBoardProfileRequest {
+  name: string;
+  layers: Record<string, Record<string, DeviceMacroStroke[]>>;
+  settings: AppSettings;
+}
+
+export interface LoadBoardProfileResult {
+  profiles: SavedBoardProfile[];
+  workspaces: DeviceWorkspace[];
+  settings: AppSettings;
+}

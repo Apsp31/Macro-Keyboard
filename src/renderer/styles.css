@@ -349,6 +349,10 @@ button {
   margin: 14px 0 8px;
 }
 
+.compact-panel {
+  margin: 10px 0 0;
+}
+
 .write-mode-tabs {
   display: flex;
   gap: 8px;

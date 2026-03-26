@@ -1,5 +1,14 @@
 # Version History
 
+## 0.1.8
+
+- Added real local profile management:
+  - save the current board state as a named profile
+  - list saved profiles
+  - load a saved profile back onto the board
+- Profiles now include app-side metadata such as key labels, layer names, and target keyboard settings.
+- Added main-process profile storage and board-apply support for saved profiles.
+
 ## 0.1.7
 
 - Moved app-side metadata persistence to an Electron-managed JSON settings file instead of relying only on renderer localStorage.

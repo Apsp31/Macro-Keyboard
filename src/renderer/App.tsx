@@ -7,9 +7,12 @@ import type {
   DeviceProfile,
   DeviceDuplicateLayerRequest,
   DeviceWorkspace,
+  LoadBoardProfileResult,
   KeyBinding,
   KnobBinding,
   MacroAction,
+  SavedBoardProfile,
+  SaveBoardProfileRequest,
   TextLayoutTarget
 } from "@shared/types";
 const LABEL_STORAGE_KEY = "macrodeck-label-overrides";
@@ -250,6 +253,9 @@ export function App() {
   const [layerTargets, setLayerTargets] = useState<Record<string, TextLayoutTarget>>({});
   const [duplicateTargetLayerId, setDuplicateTargetLayerId] = useState("");
   const [settingsLoaded, setSettingsLoaded] = useState(false);
+  const [savedProfiles, setSavedProfiles] = useState<SavedBoardProfile[]>([]);
+  const [profileNameDraft, setProfileNameDraft] = useState("");
+  const [selectedSavedProfileId, setSelectedSavedProfileId] = useState("");
 
   useEffect(() => {
     void window.macroDeck.loadSettings().then((settings) => {
@@ -302,6 +308,10 @@ export function App() {
     }).catch(() => {
       setSettingsLoaded(true);
     });
+    void window.macroDeck.listProfiles().then((profiles) => {
+      setSavedProfiles(profiles);
+      setSelectedSavedProfileId(profiles[0]?.id ?? "");
+    }).catch(() => undefined);
   }, []);
 
   useEffect(() => {
@@ -718,6 +728,74 @@ export function App() {
     })
   })).filter((group) => group.keys.length > 0);
 
+  const buildCurrentLayerSnapshot = (): Record<string, Record<string, DeviceMacroStroke[]>> => {
+    const snapshot: Record<string, Record<string, DeviceMacroStroke[]>> = {};
+
+    selectedProfile?.layers.forEach((layer, index) => {
+      snapshot[String(index + 1)] = {
+        ...Object.fromEntries(layer.keys.map((key) => [`key${key.index}`, key.strokes ?? []])),
+        ...Object.fromEntries(layer.knobs.flatMap((knob) => {
+          const knobNumber = knob.id.includes("2") ? 2 : 1;
+          return [
+            [`knob${knobNumber}_left`, knob.counterClockwiseStrokes ?? []],
+            [`knob${knobNumber}_press`, knob.pressStrokes ?? []],
+            [`knob${knobNumber}_right`, knob.clockwiseStrokes ?? []]
+          ];
+        }))
+      };
+    });
+
+    return snapshot;
+  };
+
+  const saveCurrentProfile = async () => {
+    if (!profileNameDraft.trim() || !selectedProfile) {
+      return;
+    }
+
+    setStatusMessage("");
+    try {
+      const request: SaveBoardProfileRequest = {
+        name: profileNameDraft.trim(),
+        layers: buildCurrentLayerSnapshot(),
+        settings: {
+          labelOverrides,
+          layerNameOverrides,
+          layerTargets
+        }
+      };
+      const profiles = await window.macroDeck.saveProfile(request);
+      setSavedProfiles(profiles);
+      setSelectedSavedProfileId(profiles[0]?.id ?? "");
+      setProfileNameDraft("");
+      setStatusMessage(`Saved profile ${request.name}.`);
+    } catch (error) {
+      setStatusMessage(error instanceof Error ? error.message : String(error));
+    }
+  };
+
+  const loadSavedProfile = async () => {
+    if (!selectedSavedProfileId) {
+      return;
+    }
+
+    setIsWritingText(true);
+    setStatusMessage("");
+    try {
+      const result: LoadBoardProfileResult = await window.macroDeck.loadProfile(selectedSavedProfileId);
+      setSavedProfiles(result.profiles);
+      setLabelOverrides(result.settings.labelOverrides);
+      setLayerNameOverrides(result.settings.layerNameOverrides);
+      setLayerTargets(result.settings.layerTargets);
+      applyWorkspaces(result.workspaces);
+      setStatusMessage("Loaded saved profile onto the board.");
+    } catch (error) {
+      setStatusMessage(error instanceof Error ? error.message : String(error));
+    } finally {
+      setIsWritingText(false);
+    }
+  };
+
   const duplicateLayerToTarget = async () => {
     if (!selectedLayer || !selectedProfile || !duplicateTargetLayerId || duplicateTargetLayerId === selectedLayer.id) {
       return;
@@ -841,6 +919,37 @@ export function App() {
           <button className="secondary-button full-width" onClick={() => void readBoard()} type="button">
             {isReadingBoard ? "Reading Board..." : "Read Board Config"}
           </button>
+
+          <div className="diagnostics-panel">
+            <p className="eyebrow">Profiles</p>
+            <div className="write-panel compact-panel">
+              <input
+                className="write-input"
+                type="text"
+                value={profileNameDraft}
+                onChange={(event) => setProfileNameDraft(event.target.value)}
+                placeholder="Save current board as..."
+              />
+              <button className="secondary-button full-width" onClick={() => void saveCurrentProfile()} type="button">
+                Save Current As Profile
+              </button>
+              <select
+                className="write-input"
+                value={selectedSavedProfileId}
+                onChange={(event) => setSelectedSavedProfileId(event.target.value)}
+              >
+                <option value="">Choose saved profile</option>
+                {savedProfiles.map((profile) => (
+                  <option key={profile.id} value={profile.id}>
+                    {profile.name}
+                  </option>
+                ))}
+              </select>
+              <button className="secondary-button full-width" onClick={() => void loadSavedProfile()} type="button">
+                Load Profile To Board
+              </button>
+            </div>
+          </div>
 
           <div className="diagnostics-panel">
             <p className="eyebrow">Diagnostics</p>

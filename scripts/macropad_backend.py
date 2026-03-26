@@ -7,6 +7,7 @@ Commands:
   python scripts/macropad_backend.py write-text --layer 1 --button key1 --text TEST --text-layout win-uk
   python scripts/macropad_backend.py write-binding --layer 1 --button key1 --binding "ctrl+c"
   python scripts/macropad_backend.py duplicate-layer --source-layer 1 --target-layer 2
+  python scripts/macropad_backend.py apply-profile --profile-json path/to/profile.json
 """
 
 import argparse
@@ -429,6 +430,25 @@ def command_duplicate_layer(source_layer: int, target_layer: int):
     )
 
 
+def command_apply_profile(profile_json_path: str):
+    _, ep_out, ep_in = open_device()
+    with open(profile_json_path, "r", encoding="utf8") as handle:
+        profile_layers = json.load(handle)
+
+    for layer_number in range(1, NUM_LAYERS + 1):
+        layer_data = profile_layers.get(str(layer_number), {})
+        for button_name, button_id in BUTTON_NAMES.items():
+            strokes = layer_data.get(button_name, [])
+            keys = [
+                (int(stroke.get("modifier", 0)), int(stroke.get("keycode", 0)))
+                for stroke in strokes
+            ]
+            write_button(ep_out, button_id, layer_number, keys if keys else [(0, 0)], save=False)
+
+    save_to_board(ep_out)
+    print(json.dumps({"ok": True, "layers": read_all(ep_out, ep_in)}, indent=2))
+
+
 def main():
     parser = argparse.ArgumentParser()
     subparsers = parser.add_subparsers(dest="command", required=True)
@@ -451,6 +471,9 @@ def main():
     duplicate_layer.add_argument("--source-layer", type=int, required=True)
     duplicate_layer.add_argument("--target-layer", type=int, required=True)
 
+    apply_profile = subparsers.add_parser("apply-profile")
+    apply_profile.add_argument("--profile-json", required=True)
+
     args = parser.parse_args()
 
     try:
@@ -462,6 +485,8 @@ def main():
             command_write_binding(args.layer, args.button, args.binding, args.text_layout)
         elif args.command == "duplicate-layer":
             command_duplicate_layer(args.source_layer, args.target_layer)
+        elif args.command == "apply-profile":
+            command_apply_profile(args.profile_json)
     except usb.core.USBError as error:
         fail(f"USB error: {error}")
     except Exception as error:

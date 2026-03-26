@@ -1,10 +1,12 @@
 import { app, BrowserWindow, ipcMain } from "electron";
 import path from "node:path";
 import { DeviceService } from "./services/deviceService";
+import { ProfilesService } from "./services/profilesService";
 import { SettingsService } from "./services/settingsService";
 
 const deviceService = new DeviceService();
 const settingsService = new SettingsService();
+const profilesService = new ProfilesService();
 
 function createWindow(): BrowserWindow {
   const mainWindow = new BrowserWindow({
@@ -66,6 +68,29 @@ app.whenReady().then(() => {
 
   ipcMain.handle("settings:save", async (_event, settings) => {
     return settingsService.save(settings);
+  });
+
+  ipcMain.handle("profiles:list", async () => {
+    return profilesService.list();
+  });
+
+  ipcMain.handle("profiles:save", async (_event, request) => {
+    return profilesService.save(request);
+  });
+
+  ipcMain.handle("profiles:load", async (_event, profileId) => {
+    const profile = profilesService.get(profileId);
+    if (!profile) {
+      throw new Error("Saved profile not found.");
+    }
+
+    settingsService.save(profile.settings);
+    const workspaces = await deviceService.applySavedProfile(profile);
+    return {
+      profiles: profilesService.list(),
+      workspaces,
+      settings: profile.settings
+    };
   });
 
   createWindow();

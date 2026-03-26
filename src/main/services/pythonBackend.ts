@@ -1,7 +1,10 @@
 import { spawn } from "node:child_process";
+import fs from "node:fs";
+import os from "node:os";
 import path from "node:path";
 import type {
   DeviceDuplicateLayerRequest,
+  DeviceMacroStroke,
   DeviceReadResult,
   DeviceWriteBindingRequest,
   DeviceWriteTextRequest
@@ -146,5 +149,25 @@ export class PythonBackend {
       String(request.targetLayer)
     ]);
     return JSON.parse(raw) as DeviceReadResult;
+  }
+
+  async applyProfile(layers: Record<string, Record<string, DeviceMacroStroke[]>>): Promise<DeviceReadResult> {
+    const tempPath = path.join(os.tmpdir(), `macrodeck-profile-${Date.now()}.json`);
+    fs.writeFileSync(tempPath, JSON.stringify(layers), "utf8");
+
+    try {
+      const raw = await runHelper([
+        "apply-profile",
+        "--profile-json",
+        tempPath
+      ]);
+      return JSON.parse(raw) as DeviceReadResult;
+    } finally {
+      try {
+        fs.unlinkSync(tempPath);
+      } catch {
+        // best effort cleanup
+      }
+    }
   }
 }

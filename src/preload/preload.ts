@@ -2,6 +2,9 @@ import { contextBridge, ipcRenderer } from "electron";
 import type {
   AppSettings,
   DeviceDuplicateLayerRequest,
+  LoadBoardProfileResult,
+  SaveBoardProfileRequest,
+  SavedBoardProfile,
   DeviceWorkspace,
   DeviceWriteBindingRequest,
   DeviceWriteTextRequest
@@ -15,7 +18,10 @@ const api = {
   writeBinding: (request: DeviceWriteBindingRequest): Promise<DeviceWorkspace[]> => ipcRenderer.invoke("device:write-binding", request),
   duplicateLayer: (request: DeviceDuplicateLayerRequest): Promise<DeviceWorkspace[]> => ipcRenderer.invoke("device:duplicate-layer", request),
   loadSettings: (): Promise<AppSettings> => ipcRenderer.invoke("settings:load"),
-  saveSettings: (settings: AppSettings): Promise<AppSettings> => ipcRenderer.invoke("settings:save", settings)
+  saveSettings: (settings: AppSettings): Promise<AppSettings> => ipcRenderer.invoke("settings:save", settings),
+  listProfiles: (): Promise<SavedBoardProfile[]> => ipcRenderer.invoke("profiles:list"),
+  saveProfile: (request: SaveBoardProfileRequest): Promise<SavedBoardProfile[]> => ipcRenderer.invoke("profiles:save", request),
+  loadProfile: (profileId: string): Promise<LoadBoardProfileResult> => ipcRenderer.invoke("profiles:load", profileId)
 };
 
 contextBridge.exposeInMainWorld("macroDeck", api);

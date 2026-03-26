@@ -69,6 +69,7 @@ This scaffold already includes:
 - Real HID enumeration for `VID_1189` / `PID_8840` via `node-hid`
 - A CH57x-oriented profile model with matrix layout, layers, wheels, and lighting
 - A Python/PyUSB backend path for real onboard read/write on Windows
+- Real local profile save/load for board state plus app-side labels/layer settings
 - A mock fallback workspace when the device or native HID module is unavailable
 - IPC wiring between the renderer and Electron
 - Diagnostics in the UI so detection state is visible
@@ -78,8 +79,8 @@ This scaffold already includes:
 1. Confirm how the device exposes writable macro data, if at all.
 2. Capture live key events from the macro pad to identify per-key mappings.
 3. Probe for feature and output reports to determine whether onboard macro storage exists.
-4. Build import/export support for profiles.
-5. Add persistent local storage and a macro editor timeline.
+4. Add import/export support for profiles.
+5. Add a richer macro editor timeline and mouse-style OEM actions.
 
 ## Environment Note
 
