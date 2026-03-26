@@ -1,0 +1,45 @@
+{
+  "name": "macrodeck-studio",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A friendly desktop app for managing macros on generic USB macro keyboards.",
+  "main": "dist-electron/main/main.js",
+  "author": "OpenAI Codex",
+  "license": "MIT",
+  "scripts": {
+    "dev": "concurrently -k \"vite\" \"tsc -p tsconfig.node.json --watch\" \"wait-on tcp:5173 file:dist-electron/main/main.js && cross-env VITE_DEV_SERVER_URL=http://127.0.0.1:5173 electron .\"",
+    "dev:renderer": "vite",
+    "dev:main": "tsc -p tsconfig.node.json --watch",
+    "dev:electron": "wait-on tcp:5173 file:dist-electron/main/main.js && cross-env VITE_DEV_SERVER_URL=http://127.0.0.1:5173 electron .",
+    "build": "vite build && tsc -p tsconfig.node.json",
+    "build:renderer": "vite build",
+    "build:main": "tsc -p tsconfig.node.json",
+    "probe:enumerate": "node ./scripts/hid-enumerate.js",
+    "probe:feature": "node ./scripts/hid-probe-feature-reports.js",
+    "probe:vendor": "node ./scripts/hid-monitor-vendor.js",
+    "probe:collections": "node ./scripts/hid-monitor-collections.js",
+    "probe:key-read": "python ./scripts/test_one_key.py read --layer 1 --button key1",
+    "probe:key-write-abcd": "python ./scripts/test_one_key.py write --layer 1 --button key1 --text ABCD",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit && tsc -p tsconfig.node.json --noEmit"
+  },
+  "dependencies": {
+    "clsx": "^2.1.1",
+    "node-hid": "^3.1.2",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/node": "^24.0.1",
+    "@types/react": "^19.1.2",
+    "@types/react-dom": "^19.1.2",
+    "@vitejs/plugin-react": "^5.0.0",
+    "concurrently": "^9.1.2",
+    "cross-env": "^7.0.3",
+    "electron": "^37.2.1",
+    "typescript": "^5.8.3",
+    "vite": "^6.3.5",
+    "wait-on": "^8.0.3"
+  }
+}
