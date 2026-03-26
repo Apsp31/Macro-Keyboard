@@ -147,11 +147,13 @@ Key sources and inspiration:
 
 - The OEM Windows bundle supplied with the device and inspected locally in this workspace
   - used to confirm feature intent such as layers, download/read actions, and the general HID-based programming path
-- `mikhailvs/macropad`
+- [`mikhailvs/macropad`](https://github.com/mikhailvs/macropad)
   - especially valuable for matching this exact `1189:8840` family and for providing a concrete programming model and protocol direction
-- `kriomant/ch57x-keyboard-tool`
+- [`kriomant/ch57x-keyboard-tool`](https://github.com/kriomant/ch57x-keyboard-tool)
   - useful confirmation that this board family is genuinely programmable and part of a broader CH57x ecosystem
 - User-provided USB/HID probing, capture files, and live Windows validation
   - crucial for confirming the actual working interface, driver path, and successful read/write behavior on this specific unit
+
+Thanks are due to the contributors and reverse-engineers behind those public projects for publishing their findings and code. Their work materially reduced the amount of blind protocol guessing required here and helped turn this board from an opaque OEM device into something we could program openly.
 
 This app does not copy the OEM UI. The goal is to build a clearer and more reliable tool while acknowledging the protocol research and observed device behavior that made the current implementation possible.
