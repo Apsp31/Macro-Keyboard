@@ -97,7 +97,7 @@ The Electron app now uses a small Python helper to read and write the keyboard u
 
 For the fuller setup and protocol notes, see:
 
-- [docs/HARDWARE_AND_PROTOCOL.md](/C:/Users/alan/OneDrive/Documents/Playground/docs/HARDWARE_AND_PROTOCOL.md)
+- [docs/HARDWARE_AND_PROTOCOL.md](docs/HARDWARE_AND_PROTOCOL.md)
   This also includes acknowledgements for the OEM tool and community reverse-engineering work that informed this project.
 
 ## Notes On This Hardware
