@@ -1,0 +1,24 @@
+# Version History
+
+## 0.1.1
+
+- Disabled automatic DevTools opening during development unless explicitly requested.
+- Added app version display to the UI.
+- Added hardware/protocol documentation and acknowledgements.
+- Added per-layer target keyboard selection for text encoding.
+- Added duplicate-layer support on the board.
+- Improved duplicate-layer behavior to switch to the copied layer after completion.
+- Optimized duplicate-layer writes to avoid saving to flash after every single key.
+- Added wheel binding editing.
+- Auto-read board config on startup.
+- Added persistent app-side layer names and key labels.
+- Switched the editor to show only the context-relevant editor for the selected key or wheel.
+- Removed misleading profile UI that did not yet exist as a real feature.
+
+## 0.1.0
+
+- Initial Electron + React + TypeScript desktop scaffold.
+- Added CH57x-oriented layout model for a 3x4 board with 2 wheels and 3 layers.
+- Added HID enumeration and diagnostics for `VID 1189 / PID 8840`.
+- Added working PyUSB/libusb programming backend for onboard read/write on Windows.
+- Added basic board read, key write, binding write, and layer duplication support.

@@ -38,6 +38,7 @@ Because of that, this project is structured around:
 - `src/shared`: cross-process types
 - `docs/HARDWARE_AND_PROTOCOL.md`: hardware setup, driver notes, and protocol summary
 - `docs/KNOWN_ISSUES.md`: tracked future features and known gaps
+- `docs/VERSION_HISTORY.md`: project version history
 
 ## Getting Started
 
