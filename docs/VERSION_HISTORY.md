@@ -1,5 +1,11 @@
 # Version History
 
+## 0.1.7
+
+- Moved app-side metadata persistence to an Electron-managed JSON settings file instead of relying only on renderer localStorage.
+- Added one-time migration from existing localStorage entries into the new settings file.
+- This hardens key labels, layer names, and per-layer target keyboards against dev-server/browser storage resets.
+
 ## 0.1.6
 
 - Broadened saved-label and saved-layer-name recovery to match older storage key shapes more aggressively.

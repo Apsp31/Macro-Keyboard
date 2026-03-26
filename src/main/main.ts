@@ -1,8 +1,10 @@
 import { app, BrowserWindow, ipcMain } from "electron";
 import path from "node:path";
 import { DeviceService } from "./services/deviceService";
+import { SettingsService } from "./services/settingsService";
 
 const deviceService = new DeviceService();
+const settingsService = new SettingsService();
 
 function createWindow(): BrowserWindow {
   const mainWindow = new BrowserWindow({
@@ -56,6 +58,14 @@ app.whenReady().then(() => {
 
   ipcMain.handle("device:duplicate-layer", async (_event, request) => {
     return deviceService.duplicateLayer(request);
+  });
+
+  ipcMain.handle("settings:load", async () => {
+    return settingsService.load();
+  });
+
+  ipcMain.handle("settings:save", async (_event, settings) => {
+    return settingsService.save(settings);
   });
 
   createWindow();

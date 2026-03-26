@@ -132,3 +132,9 @@ export interface DeviceDuplicateLayerRequest {
   sourceLayer: number;
   targetLayer: number;
 }
+
+export interface AppSettings {
+  labelOverrides: Record<string, string>;
+  layerNameOverrides: Record<string, string>;
+  layerTargets: Record<string, TextLayoutTarget>;
+}

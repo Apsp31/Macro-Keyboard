@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import packageJson from "../../package.json";
 import type {
+  AppSettings,
   DeviceLayer,
   DeviceMacroStroke,
   DeviceProfile,
@@ -248,51 +249,75 @@ export function App() {
   const [layerNameOverrides, setLayerNameOverrides] = useState<Record<string, string>>({});
   const [layerTargets, setLayerTargets] = useState<Record<string, TextLayoutTarget>>({});
   const [duplicateTargetLayerId, setDuplicateTargetLayerId] = useState("");
+  const [settingsLoaded, setSettingsLoaded] = useState(false);
 
   useEffect(() => {
-    const raw = window.localStorage.getItem(LABEL_STORAGE_KEY);
-    if (raw) {
-      try {
-        setLabelOverrides(JSON.parse(raw) as Record<string, string>);
-      } catch {
-        window.localStorage.removeItem(LABEL_STORAGE_KEY);
+    void window.macroDeck.loadSettings().then((settings) => {
+      const persisted: AppSettings = {
+        labelOverrides: settings.labelOverrides ?? {},
+        layerNameOverrides: settings.layerNameOverrides ?? {},
+        layerTargets: settings.layerTargets ?? {}
+      };
+
+      const localLabelOverrides = (() => {
+        try {
+          return JSON.parse(window.localStorage.getItem(LABEL_STORAGE_KEY) ?? "{}") as Record<string, string>;
+        } catch {
+          return {};
+        }
+      })();
+      const localLayerNameOverrides = (() => {
+        try {
+          return JSON.parse(window.localStorage.getItem(LAYER_NAME_STORAGE_KEY) ?? "{}") as Record<string, string>;
+        } catch {
+          return {};
+        }
+      })();
+      const localLayerTargets = (() => {
+        try {
+          return JSON.parse(window.localStorage.getItem(LAYER_TARGET_STORAGE_KEY) ?? "{}") as Record<string, TextLayoutTarget>;
+        } catch {
+          return {};
+        }
+      })();
+
+      const merged: AppSettings = {
+        labelOverrides: { ...persisted.labelOverrides, ...localLabelOverrides },
+        layerNameOverrides: { ...persisted.layerNameOverrides, ...localLayerNameOverrides },
+        layerTargets: { ...persisted.layerTargets, ...localLayerTargets }
+      };
+
+      setLabelOverrides(merged.labelOverrides);
+      setLayerNameOverrides(merged.layerNameOverrides);
+      setLayerTargets(merged.layerTargets);
+      setSettingsLoaded(true);
+
+      if (
+        Object.keys(localLabelOverrides).length > 0 ||
+        Object.keys(localLayerNameOverrides).length > 0 ||
+        Object.keys(localLayerTargets).length > 0
+      ) {
+        void window.macroDeck.saveSettings(merged);
       }
-    }
+    }).catch(() => {
+      setSettingsLoaded(true);
+    });
   }, []);
 
   useEffect(() => {
-    const raw = window.localStorage.getItem(LAYER_NAME_STORAGE_KEY);
-    if (raw) {
-      try {
-        setLayerNameOverrides(JSON.parse(raw) as Record<string, string>);
-      } catch {
-        window.localStorage.removeItem(LAYER_NAME_STORAGE_KEY);
-      }
+    if (!settingsLoaded) {
+      return;
     }
-  }, []);
 
-  useEffect(() => {
-    const raw = window.localStorage.getItem(LAYER_TARGET_STORAGE_KEY);
-    if (raw) {
-      try {
-        setLayerTargets(JSON.parse(raw) as Record<string, TextLayoutTarget>);
-      } catch {
-        window.localStorage.removeItem(LAYER_TARGET_STORAGE_KEY);
-      }
-    }
-  }, []);
-
-  useEffect(() => {
     window.localStorage.setItem(LABEL_STORAGE_KEY, JSON.stringify(labelOverrides));
-  }, [labelOverrides]);
-
-  useEffect(() => {
     window.localStorage.setItem(LAYER_NAME_STORAGE_KEY, JSON.stringify(layerNameOverrides));
-  }, [layerNameOverrides]);
-
-  useEffect(() => {
     window.localStorage.setItem(LAYER_TARGET_STORAGE_KEY, JSON.stringify(layerTargets));
-  }, [layerTargets]);
+    void window.macroDeck.saveSettings({
+      labelOverrides,
+      layerNameOverrides,
+      layerTargets
+    });
+  }, [settingsLoaded, labelOverrides, layerNameOverrides, layerTargets]);
 
   const getStableDeviceStorageId = () =>
     workspace
