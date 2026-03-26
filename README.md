@@ -36,6 +36,8 @@ Because of that, this project is structured around:
 - `src/preload`: secure IPC bridge
 - `src/renderer`: React app
 - `src/shared`: cross-process types
+- `docs/HARDWARE_AND_PROTOCOL.md`: hardware setup, driver notes, and protocol summary
+- `docs/KNOWN_ISSUES.md`: tracked future features and known gaps
 
 ## Getting Started
 
@@ -91,6 +93,10 @@ $env:PYUSB_LIBUSB_PATH="C:\Program Files\Elgato\StreamDeck\libusb-1.0.dll"
 ```
 
 The Electron app now uses a small Python helper to read and write the keyboard using the same proven protocol.
+
+For the fuller setup and protocol notes, see:
+
+- [docs/HARDWARE_AND_PROTOCOL.md](/C:/Users/alan/OneDrive/Documents/Playground/docs/HARDWARE_AND_PROTOCOL.md)
 
 ## Notes On This Hardware
 

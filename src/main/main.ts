@@ -23,7 +23,9 @@ function createWindow(): BrowserWindow {
 
   if (devServerUrl) {
     void mainWindow.loadURL(devServerUrl);
-    mainWindow.webContents.openDevTools({ mode: "detach" });
+    if (process.env.MACRODECK_OPEN_DEVTOOLS === "1") {
+      mainWindow.webContents.openDevTools({ mode: "detach" });
+    }
   } else {
     void mainWindow.loadFile(path.join(__dirname, "../../dist/index.html"));
   }
