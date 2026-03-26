@@ -1,5 +1,11 @@
 # Version History
 
+## 0.1.3
+
+- Moved layer-wide controls behind an explicit `Edit Layer` toggle near the layer tabs.
+- Defaulted the lower editor area back to the currently selected key or wheel.
+- Kept layer switching in layer-edit mode when changing tabs, while key and wheel selection continue to exit back to their relevant editor.
+
 ## 0.1.2
 
 - Passed the per-layer target keyboard through the special-binding path, not just text writes.

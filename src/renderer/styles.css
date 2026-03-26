@@ -213,6 +213,10 @@ button {
   color: #dce9fb;
 }
 
+.layer-edit-toggle {
+  flex-shrink: 0;
+}
+
 .layer-tab.active,
 .layer-tab:hover,
 .knob-card.selected,

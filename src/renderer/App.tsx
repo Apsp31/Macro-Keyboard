@@ -231,7 +231,7 @@ export function App() {
   const [selectedLayerId, setSelectedLayerId] = useState<string>("");
   const [selectedKeyId, setSelectedKeyId] = useState<string>("");
   const [selectedKnobId, setSelectedKnobId] = useState<string>("");
-  const [selectedEditor, setSelectedEditor] = useState<"key" | "wheel">("key");
+  const [selectedEditor, setSelectedEditor] = useState<"key" | "wheel" | "layer">("key");
   const [selectedWheelPart, setSelectedWheelPart] = useState<WheelPart>("clockwise");
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isReadingBoard, setIsReadingBoard] = useState(false);
@@ -778,7 +778,7 @@ export function App() {
                     setSelectedLayerId(layer.id);
                     setSelectedKeyId(layer.keys[0]?.id ?? "");
                     setSelectedKnobId(layer.knobs[0]?.id ?? "");
-                    setSelectedEditor("key");
+                    setSelectedEditor((current) => (current === "layer" ? "layer" : "key"));
                   }}
                   type="button"
                 >
@@ -786,6 +786,13 @@ export function App() {
                 </button>
               ))}
             </div>
+            <button
+              className={`layer-tab layer-edit-toggle ${selectedEditor === "layer" ? "active" : ""}`}
+              onClick={() => setSelectedEditor((current) => (current === "layer" ? "key" : "layer"))}
+              type="button"
+            >
+              {selectedEditor === "layer" ? "Close Layer Settings" : "Edit Layer"}
+            </button>
           </div>
 
           <div className="hardware-editor">
@@ -828,6 +835,7 @@ export function App() {
           </div>
 
           <div className="details-grid">
+            {selectedEditor === "layer" ? (
             <div className="binding-card">
               <div>
                 <p className="eyebrow">Layer Settings</p>
@@ -895,6 +903,7 @@ export function App() {
                 </div>
               </div>
             </div>
+            ) : null}
 
             {selectedEditor === "key" ? (
               <div className="binding-card">
@@ -1049,7 +1058,7 @@ export function App() {
                 </div>
                 <ActionList actions={selectedKey?.actions} />
               </div>
-            ) : (
+            ) : selectedEditor === "wheel" ? (
               <div className="binding-card">
                 <div>
                   <p className="eyebrow">Wheel Binding</p>
@@ -1171,7 +1180,7 @@ export function App() {
                 </div>
                 <ActionList actions={getSelectedWheelActions(selectedKnob, selectedWheelPart)} />
               </div>
-            )}
+            ) : null}
           </div>
         </section>
       </section>
