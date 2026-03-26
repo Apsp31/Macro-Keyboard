@@ -125,6 +125,7 @@ export interface DeviceWriteBindingRequest {
   layer: number;
   button: string;
   binding: string;
+  textLayout: TextLayoutTarget;
 }
 
 export interface DeviceDuplicateLayerRequest {

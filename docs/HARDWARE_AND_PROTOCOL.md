@@ -117,6 +117,21 @@ This is why the app supports a per-layer target keyboard selection such as:
 - `macOS UK`
 - `macOS US`
 
+In the current implementation, the practical distinction is:
+
+- printable ASCII symbols are primarily a physical-layout problem
+  - `US` versus `UK`
+- platform shortcuts are an OS problem
+  - `Windows` versus `macOS`
+
+So:
+
+- `Windows US` and `macOS US` intentionally share the same basic printable-key mapping
+- `Windows UK` and `macOS UK` intentionally share the same basic printable-key mapping
+- platform-specific aliases such as `lock` are expanded differently per OS target
+  - Windows: `Win+L`
+  - macOS: `Control+Command+Q`
+
 ## What Is App Metadata Versus Board State
 
 Stored on the board:

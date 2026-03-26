@@ -1,5 +1,16 @@
 # Version History
 
+## 0.1.2
+
+- Passed the per-layer target keyboard through the special-binding path, not just text writes.
+- Added explicit `Print Screen` and `Lock Screen` picker actions for keys and wheels.
+- Made `lock` target-aware:
+  - Windows layers write `Win+L`
+  - macOS layers write `Control+Command+Q`
+- Clarified the practical layout model in docs:
+  - printable ASCII currently differs by physical layout (`UK` vs `US`)
+  - platform-specific shortcuts differ by OS (`Windows` vs `macOS`)
+
 ## 0.1.1
 
 - Disabled automatic DevTools opening during development unless explicitly requested.

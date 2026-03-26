@@ -130,7 +130,9 @@ export class PythonBackend {
       "--button",
       request.button,
       "--binding",
-      request.binding
+      request.binding,
+      "--text-layout",
+      request.textLayout
     ]);
     return JSON.parse(raw) as DeviceReadResult;
   }

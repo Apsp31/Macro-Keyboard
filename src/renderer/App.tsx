@@ -21,12 +21,60 @@ const MODIFIER_PICKER = [
   { id: "win", label: "Win" }
 ] as const;
 const KEY_GROUPS = [
-  { title: "Common", keys: ["enter", "tab", "esc", "space", "backspace", "delete"] },
-  { title: "Navigation", keys: ["up", "down", "left", "right", "home", "end", "pageup", "pagedown"] },
-  { title: "Media", keys: ["mute", "volume_up", "volume_down"] },
-  { title: "Letters", keys: "abcdefghijklmnopqrstuvwxyz".split("") },
-  { title: "Numbers", keys: "1234567890".split("") },
-  { title: "Function", keys: Array.from({ length: 24 }, (_, index) => `f${index + 1}`) }
+  {
+    title: "Common",
+    keys: [
+      { token: "enter", label: "Enter" },
+      { token: "tab", label: "Tab" },
+      { token: "esc", label: "Esc" },
+      { token: "space", label: "Space" },
+      { token: "backspace", label: "Backspace" },
+      { token: "delete", label: "Delete" }
+    ]
+  },
+  {
+    title: "Navigation",
+    keys: [
+      { token: "up", label: "Up" },
+      { token: "down", label: "Down" },
+      { token: "left", label: "Left" },
+      { token: "right", label: "Right" },
+      { token: "home", label: "Home" },
+      { token: "end", label: "End" },
+      { token: "pageup", label: "Page Up" },
+      { token: "pagedown", label: "Page Down" }
+    ]
+  },
+  {
+    title: "Media",
+    keys: [
+      { token: "mute", label: "Mute" },
+      { token: "volume_up", label: "Volume Up" },
+      { token: "volume_down", label: "Volume Down" }
+    ]
+  },
+  {
+    title: "Screen / Session",
+    keys: [
+      { token: "printscreen", label: "Print Screen" },
+      { token: "lock", label: "Lock Screen" }
+    ]
+  },
+  {
+    title: "Letters",
+    keys: "abcdefghijklmnopqrstuvwxyz".split("").map((token) => ({ token, label: token.toUpperCase() }))
+  },
+  {
+    title: "Numbers",
+    keys: "1234567890".split("").map((token) => ({ token, label: token }))
+  },
+  {
+    title: "Function",
+    keys: Array.from({ length: 24 }, (_, index) => {
+      const token = `f${index + 1}`;
+      return { token, label: token.toUpperCase() };
+    })
+  }
 ] as const;
 const TEXT_LAYOUT_OPTIONS: Array<{ value: TextLayoutTarget; label: string }> = [
   { value: "win-uk", label: "Windows UK" },
@@ -76,6 +124,35 @@ function summarizeStrokes(strokes: DeviceMacroStroke[] | undefined): string {
   }
 
   return strokes.map(strokeToDisplay).join(", ");
+}
+
+function toBindingInput(strokes: DeviceMacroStroke[] | undefined): string {
+  if (!strokes?.length) {
+    return "";
+  }
+
+  return strokes
+    .map((stroke) => {
+      const parts: string[] = [];
+      if (stroke.modifier & 0x01) {
+        parts.push("ctrl");
+      }
+      if (stroke.modifier & 0x02) {
+        parts.push("shift");
+      }
+      if (stroke.modifier & 0x04) {
+        parts.push("alt");
+      }
+      if (stroke.modifier & 0x08) {
+        parts.push("win");
+      }
+      if (stroke.key !== "none") {
+        parts.push(stroke.key);
+      }
+      return parts.join("+");
+    })
+    .filter(Boolean)
+    .join(", ");
 }
 
 function ActionList({ actions }: { actions: MacroAction[] | undefined }) {
@@ -226,9 +303,13 @@ export function App() {
           keyId
         ].join(":")
       : "";
+  const getLegacyLabelKey = (layerId: string | undefined, keyId: string | undefined) =>
+    layerId && keyId ? `${layerId}:${keyId}` : "";
 
   const getDisplayLabel = (layerId: string | undefined, key: KeyBinding | undefined) => {
-    const override = labelOverrides[getLabelKey(layerId, key?.id)];
+    const override =
+      labelOverrides[getLabelKey(layerId, key?.id)] ??
+      labelOverrides[getLegacyLabelKey(layerId, key?.id)];
     return override || key?.legend || "Key";
   };
   const getLayerNameKey = (layerId: string | undefined) =>
@@ -283,7 +364,6 @@ export function App() {
     }
     return knob.press;
   };
-
   const workspace = workspaces[0];
   const selectedProfile: DeviceProfile | undefined =
     workspace?.profiles.find((profile) => profile.id === selectedProfileId) ?? workspace?.profiles[0];
@@ -293,6 +373,12 @@ export function App() {
     selectedLayer?.keys.find((binding) => binding.id === selectedKeyId) ?? selectedLayer?.keys[0];
   const selectedKnob: KnobBinding | undefined =
     selectedLayer?.knobs.find((knob) => knob.id === selectedKnobId) ?? selectedLayer?.knobs[0];
+  const currentTextLayout = getLayerTarget(selectedLayer?.id);
+  const modifierPicker = MODIFIER_PICKER.map((modifier) =>
+    modifier.id === "win"
+      ? { ...modifier, label: currentTextLayout.startsWith("mac-") ? "Cmd" : "Win" }
+      : modifier
+  );
 
   const applyWorkspaces = (result: DeviceWorkspace[]) => {
     setWorkspaces(result);
@@ -336,6 +422,30 @@ export function App() {
   }, [selectedKey?.id, selectedLayerId, labelOverrides]);
 
   useEffect(() => {
+    if (!workspace || !selectedProfile) {
+      return;
+    }
+
+    setLabelOverrides((current) => {
+      let changed = false;
+      const next = { ...current };
+
+      for (const layer of selectedProfile.layers) {
+        for (const key of layer.keys) {
+          const legacyKey = getLegacyLabelKey(layer.id, key.id);
+          const nextKey = getLabelKey(layer.id, key.id);
+          if (legacyKey && nextKey && current[legacyKey] && !current[nextKey]) {
+            next[nextKey] = current[legacyKey];
+            changed = true;
+          }
+        }
+      }
+
+      return changed ? next : current;
+    });
+  }, [workspace?.device.id, selectedProfile?.id]);
+
+  useEffect(() => {
     setLayerNameDraft(getDisplayLayerName(selectedLayer));
   }, [selectedLayer?.id, layerNameOverrides]);
 
@@ -346,6 +456,25 @@ export function App() {
       current && current !== selectedLayerId ? current : fallback
     );
   }, [selectedLayerId, selectedProfile?.id]);
+
+  useEffect(() => {
+    if (selectedEditor === "key") {
+      setTextDraft(summarizeStrokes(selectedKey?.strokes) === "No action" ? "" : summarizeStrokes(selectedKey?.strokes));
+      setBindingDraft(toBindingInput(selectedKey?.strokes));
+      return;
+    }
+
+    setBindingDraft(toBindingInput(getSelectedWheelStrokes(selectedKnob, selectedWheelPart)));
+  }, [
+    selectedEditor,
+    selectedKey?.id,
+    selectedKey?.strokes,
+    selectedKnob?.id,
+    selectedKnob?.clockwiseStrokes,
+    selectedKnob?.counterClockwiseStrokes,
+    selectedKnob?.pressStrokes,
+    selectedWheelPart
+  ]);
 
   const refreshDevices = async () => {
     setIsRefreshing(true);
@@ -410,7 +539,8 @@ export function App() {
       const result = await window.macroDeck.writeBinding({
         layer: layerNumber,
         button: `key${selectedKey.index}`,
-        binding: bindingDraft
+        binding: bindingDraft,
+        textLayout: getLayerTarget(selectedLayer.id)
       });
       applyWorkspaces(result);
       setStatusMessage(`Wrote binding to ${getDisplayLabel(selectedLayer?.id, selectedKey)}.`);
@@ -440,7 +570,8 @@ export function App() {
       const result = await window.macroDeck.writeBinding({
         layer: layerNumber,
         button,
-        binding: bindingDraft
+        binding: bindingDraft,
+        textLayout: getLayerTarget(selectedLayer.id)
       });
       applyWorkspaces(result);
       setStatusMessage(`Wrote ${selectedKnob.legend} ${selectedWheelPart} binding.`);
@@ -485,7 +616,10 @@ export function App() {
 
   const filteredGroups = KEY_GROUPS.map((group) => ({
     ...group,
-    keys: group.keys.filter((key) => key.includes(bindingSearch.trim().toLowerCase()))
+    keys: group.keys.filter((key) => {
+      const search = bindingSearch.trim().toLowerCase();
+      return !search || key.token.includes(search) || key.label.toLowerCase().includes(search);
+    })
   })).filter((group) => group.keys.length > 0);
 
   const duplicateLayerToTarget = async () => {
@@ -503,11 +637,41 @@ export function App() {
     try {
       const request: DeviceDuplicateLayerRequest = { sourceLayer, targetLayer };
       const result = await window.macroDeck.duplicateLayer(request);
+      const sourceLayerId = selectedLayer.id;
       setLayerTargets((current) => ({
         ...current,
         [duplicateTargetLayerId]: getLayerTarget(selectedLayer.id)
       }));
+      setLabelOverrides((current) => {
+        const next = { ...current };
+        const sourceLayerData = selectedProfile.layers.find((layer) => layer.id === sourceLayerId);
+        const targetLayerData = selectedProfile.layers.find((layer) => layer.id === duplicateTargetLayerId);
+        if (!sourceLayerData || !targetLayerData) {
+          return current;
+        }
+
+        sourceLayerData.keys.forEach((sourceKey, index) => {
+          const targetKey = targetLayerData.keys[index];
+          if (!targetKey) {
+            return;
+          }
+          const sourceLabel = current[getLabelKey(sourceLayerId, sourceKey.id)] ?? current[getLegacyLabelKey(sourceLayerId, sourceKey.id)];
+          if (sourceLabel) {
+            next[getLabelKey(duplicateTargetLayerId, targetKey.id)] = sourceLabel;
+          }
+        });
+
+        return next;
+      });
       applyWorkspaces(result);
+      const refreshedProfile =
+        result[0]?.profiles.find((profile) => profile.id === selectedProfile.id) ?? result[0]?.profiles[0];
+      const refreshedTargetLayer =
+        refreshedProfile?.layers.find((layer) => layer.id === duplicateTargetLayerId) ?? refreshedProfile?.layers[0];
+      setSelectedLayerId(refreshedTargetLayer?.id ?? duplicateTargetLayerId);
+      setSelectedKeyId(refreshedTargetLayer?.keys[0]?.id ?? "");
+      setSelectedKnobId(refreshedTargetLayer?.knobs[0]?.id ?? "");
+      setSelectedEditor("key");
       setStatusMessage(`Copied ${selectedLayer.name} to layer ${targetLayer}.`);
     } catch (error) {
       setStatusMessage(error instanceof Error ? error.message : String(error));
@@ -589,37 +753,18 @@ export function App() {
             ))}
             {statusMessage ? <p className="diagnostic-line strong-copy">{statusMessage}</p> : null}
           </div>
-
-          <div className="profile-list">
-            <p className="eyebrow">Profiles</p>
-            {workspace?.profiles.map((profile) => (
-              <button
-                key={profile.id}
-                className={`profile-row ${selectedProfile?.id === profile.id ? "active" : ""}`}
-                onClick={() => {
-                  setSelectedProfileId(profile.id);
-                  setSelectedLayerId(profile.layers[0]?.id ?? "");
-                  setSelectedKeyId(profile.layers[0]?.keys[0]?.id ?? "");
-                  setSelectedKnobId(profile.layers[0]?.knobs[0]?.id ?? "");
-                  setSelectedEditor("key");
-                }}
-                type="button"
-              >
-                <span>
-                  <strong>{profile.name}</strong>
-                  <small>{profile.description}</small>
-                </span>
-                {profile.active ? <em>Live</em> : null}
-              </button>
-            ))}
-          </div>
         </aside>
 
         <section className="editor-card">
           <div className="card-heading">
             <div>
-              <p className="eyebrow">Layer Editor</p>
-              <h2>{selectedProfile?.name ?? "No profile loaded"}</h2>
+              <p className="eyebrow">Board Editor</p>
+              <h2>{workspace?.device.name ?? "No board loaded"}</h2>
+              <p className="panel-version">
+                {selectedProfile
+                  ? `${selectedProfile.layout.rows}x${selectedProfile.layout.columns} board with ${selectedProfile.layout.knobCount} wheels and ${selectedProfile.layers.length} layers`
+                  : "No board layout loaded"}
+              </p>
             </div>
           </div>
 
@@ -726,7 +871,7 @@ export function App() {
                     ))}
                   </select>
                 </div>
-                <p className="write-help">Text mode uses this layout when turning characters like @, #, and " into HID key presses.</p>
+                <p className="write-help">This controls printable text symbols and platform-specific shortcuts such as <code>lock</code>.</p>
                 <label className="write-label" htmlFor="duplicate-layer-select">Duplicate this layer to</label>
                 <div className="binding-actions">
                   <select
@@ -821,14 +966,14 @@ export function App() {
                         type="text"
                         value={bindingDraft}
                         onChange={(event) => setBindingDraft(event.target.value)}
-                        placeholder="Examples: enter | f17 | ctrl+shift+t | ctrl+a, ctrl+c"
+                        placeholder="Examples: enter | printscreen | lock | ctrl+shift+t | ctrl+a, ctrl+c"
                       />
-                      <p className="write-help">Click modifiers, then click a key below. You can still type directly if you want.</p>
+                      <p className="write-help">Click modifiers, then click a key below. Tokens like <code>printscreen</code> and <code>lock</code> are available too.</p>
                       <div className="binding-builder">
                         <div className="binding-group">
                           <p className="binding-group-title">Modifiers</p>
                           <div className="binding-chip-row">
-                            {MODIFIER_PICKER.map((modifier) => {
+                            {modifierPicker.map((modifier) => {
                               const active = activeModifiers.includes(modifier.id);
                               return (
                                 <button
@@ -869,12 +1014,12 @@ export function App() {
                               <div className="binding-chip-row dense">
                                 {group.keys.map((key) => (
                                   <button
-                                    key={key}
+                                    key={key.token}
                                     className="binding-chip"
-                                    onClick={() => appendBindingToken(key)}
+                                    onClick={() => appendBindingToken(key.token)}
                                     type="button"
                                   >
-                                    {key}
+                                    {key.label}
                                   </button>
                                 ))}
                               </div>
@@ -945,14 +1090,14 @@ export function App() {
                     type="text"
                     value={bindingDraft}
                     onChange={(event) => setBindingDraft(event.target.value)}
-                    placeholder="Examples: volume_up | mute | ctrl+shift+tab"
+                    placeholder="Examples: volume_up | mute | printscreen | lock"
                   />
-                  <p className="write-help">Use the same binding builder below, then write it to the selected wheel action.</p>
+                  <p className="write-help">Use the same binding builder below, then write it to the selected wheel action. <code>lock</code> follows the layer target: Win+L on Windows, Control+Command+Q on macOS.</p>
                   <div className="binding-builder">
                     <div className="binding-group">
                       <p className="binding-group-title">Modifiers</p>
                       <div className="binding-chip-row">
-                        {MODIFIER_PICKER.map((modifier) => {
+                        {modifierPicker.map((modifier) => {
                           const active = activeModifiers.includes(modifier.id);
                           return (
                             <button
@@ -993,12 +1138,12 @@ export function App() {
                           <div className="binding-chip-row dense">
                             {group.keys.map((key) => (
                               <button
-                                key={key}
+                                key={key.token}
                                 className="binding-chip"
-                                onClick={() => appendBindingToken(key)}
+                                onClick={() => appendBindingToken(key.token)}
                                 type="button"
                               >
-                                {key}
+                                {key.label}
                               </button>
                             ))}
                           </div>

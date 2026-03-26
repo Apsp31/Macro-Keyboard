@@ -91,6 +91,11 @@ COMMON_SYMBOLS = {
     "/": (0x00, KEY["slash"]),
     "?": (0x02, KEY["slash"]),
 }
+SPECIAL_BINDING_ALIASES = {
+    "printscreen": lambda _layout: [(0x00, KEY["printscreen"])],
+    "prtsc": lambda _layout: [(0x00, KEY["printscreen"])],
+    "lock": lambda layout: [(0x08, KEY["l"])] if layout.startswith("win-") else [(0x01 | 0x08, KEY["q"])],
+}
 TEXT_SYMBOLS_BY_LAYOUT = {
     "win-us": {
         **COMMON_SYMBOLS,
@@ -261,11 +266,16 @@ def parse_text(text: str, text_layout: str):
     return result
 
 
-def parse_binding_sequence(binding: str):
+def parse_binding_sequence(binding: str, text_layout: str):
     steps = []
     for token in binding.split(","):
         part = token.strip().lower()
         if not part:
+            continue
+
+        alias = SPECIAL_BINDING_ALIASES.get(part)
+        if alias:
+            steps.extend(alias(text_layout))
             continue
 
         pieces = [piece.strip() for piece in part.split("+") if piece.strip()]
@@ -378,10 +388,10 @@ def command_write_text(layer: int, button: str, text: str, text_layout: str):
     )
 
 
-def command_write_binding(layer: int, button: str, binding: str):
+def command_write_binding(layer: int, button: str, binding: str, text_layout: str):
     _, ep_out, ep_in = open_device()
     button_id = BUTTON_NAMES[button]
-    keys = parse_binding_sequence(binding)
+    keys = parse_binding_sequence(binding, text_layout)
     write_button(ep_out, button_id, layer, keys)
     layer_data = read_layer(ep_out, ep_in, layer)
     print(
@@ -391,6 +401,7 @@ def command_write_binding(layer: int, button: str, binding: str):
                 "layer": layer,
                 "button": button,
                 "binding": binding,
+                "textLayout": text_layout,
                 "readback": layer_data.get(button_id, []),
             },
             indent=2,
@@ -434,6 +445,7 @@ def main():
     write_binding.add_argument("--layer", type=int, required=True)
     write_binding.add_argument("--button", required=True, choices=sorted(BUTTON_NAMES.keys()))
     write_binding.add_argument("--binding", required=True)
+    write_binding.add_argument("--text-layout", default="win-uk", choices=sorted(TEXT_SYMBOLS_BY_LAYOUT.keys()))
 
     duplicate_layer = subparsers.add_parser("duplicate-layer")
     duplicate_layer.add_argument("--source-layer", type=int, required=True)
@@ -447,7 +459,7 @@ def main():
         elif args.command == "write-text":
             command_write_text(args.layer, args.button, args.text, args.text_layout)
         elif args.command == "write-binding":
-            command_write_binding(args.layer, args.button, args.binding)
+            command_write_binding(args.layer, args.button, args.binding, args.text_layout)
         elif args.command == "duplicate-layer":
             command_duplicate_layer(args.source_layer, args.target_layer)
     except usb.core.USBError as error:
