@@ -293,7 +293,12 @@ def parse_binding_sequence(binding: str):
     return steps
 
 
-def write_button(ep_out, button_id: int, layer: int, keys):
+def save_to_board(ep_out):
+    send(ep_out, make_report(0x03, 0xEF, 0x03))
+    time.sleep(0.2)
+
+
+def write_button(ep_out, button_id: int, layer: int, keys, save: bool = True):
     payload = [
         0x03, 0xFD,
         button_id & 0xFF,
@@ -310,8 +315,8 @@ def write_button(ep_out, button_id: int, layer: int, keys):
     send(ep_out, bytes(payload[:REPORT_SIZE]))
     send(ep_out, make_report(0x03, 0xFD, 0xFE, 0xFF))
     time.sleep(0.2)
-    send(ep_out, make_report(0x03, 0xEF, 0x03))
-    time.sleep(0.2)
+    if save:
+        save_to_board(ep_out)
 
 
 def read_layer(ep_out, ep_in, layer: int):
@@ -345,13 +350,6 @@ def read_all(ep_out, ep_in):
                 ]
         layers[str(layer)] = named
     return layers
-
-
-def clear_layer(ep_out, layer: int):
-    for button_name, button_id in BUTTON_NAMES.items():
-        if not button_name.startswith("key") and not button_name.startswith("knob"):
-            continue
-        write_button(ep_out, button_id, layer, [(0, 0)])
 
 
 def command_read():
@@ -403,9 +401,10 @@ def command_write_binding(layer: int, button: str, binding: str):
 def command_duplicate_layer(source_layer: int, target_layer: int):
     _, ep_out, ep_in = open_device()
     source_data = read_layer(ep_out, ep_in, source_layer)
-    clear_layer(ep_out, target_layer)
-    for button_id, keys in source_data.items():
-      write_button(ep_out, button_id, target_layer, keys if keys else [(0, 0)])
+    for button_id in BUTTON_ID_TO_NAME.keys():
+        keys = source_data.get(button_id, [])
+        write_button(ep_out, button_id, target_layer, keys if keys else [(0, 0)], save=False)
+    save_to_board(ep_out)
     print(
         json.dumps(
             {
