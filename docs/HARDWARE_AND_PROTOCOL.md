@@ -138,3 +138,20 @@ Those app-side settings are useful for organization, but they are not flashed to
 - Mouse-specific OEM actions are not yet modeled as first-class programmable actions.
 - RGB/lighting is intentionally hidden in the current UI for this tested board because this unit does not need that exposed.
 - Profile import/export is not implemented yet.
+
+## Acknowledgements And Source Material
+
+This project is informed by a mix of direct testing, OEM software inspection, and community reverse-engineering work.
+
+Key sources and inspiration:
+
+- The OEM Windows bundle supplied with the device and inspected locally in this workspace
+  - used to confirm feature intent such as layers, download/read actions, and the general HID-based programming path
+- `mikhailvs/macropad`
+  - especially valuable for matching this exact `1189:8840` family and for providing a concrete programming model and protocol direction
+- `kriomant/ch57x-keyboard-tool`
+  - useful confirmation that this board family is genuinely programmable and part of a broader CH57x ecosystem
+- User-provided USB/HID probing, capture files, and live Windows validation
+  - crucial for confirming the actual working interface, driver path, and successful read/write behavior on this specific unit
+
+This app does not copy the OEM UI. The goal is to build a clearer and more reliable tool while acknowledging the protocol research and observed device behavior that made the current implementation possible.
