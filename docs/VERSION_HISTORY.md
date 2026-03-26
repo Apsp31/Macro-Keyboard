@@ -1,5 +1,10 @@
 # Version History
 
+## 0.1.6
+
+- Broadened saved-label and saved-layer-name recovery to match older storage key shapes more aggressively.
+- Added another migration pass so recovered old entries are rewritten under the current stable key format.
+
 ## 0.1.5
 
 - Made app-side key labels and layer names use a stable device identity instead of a volatile HID path fallback.

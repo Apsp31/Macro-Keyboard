@@ -324,9 +324,14 @@ export function App() {
     }
 
     const profileSuffix = selectedProfile ? `:${selectedProfile.id}:${layerId}:${keyId}` : "";
+    const profilelessDeviceSuffix = `:${layerId}:${keyId}`;
     const layerSuffix = `:${layerId}:${keyId}`;
+    const keySuffix = `:${keyId}`;
     const migratedKey = Object.keys(labelOverrides).find((storedKey) =>
-      (profileSuffix && storedKey.endsWith(profileSuffix)) || storedKey.endsWith(layerSuffix)
+      (profileSuffix && storedKey.endsWith(profileSuffix)) ||
+      storedKey.endsWith(profilelessDeviceSuffix) ||
+      storedKey.endsWith(layerSuffix) ||
+      storedKey.endsWith(keySuffix)
     );
     return migratedKey ? labelOverrides[migratedKey] : undefined;
   };
@@ -354,8 +359,9 @@ export function App() {
     }
 
     const profileSuffix = selectedProfile ? `:${selectedProfile.id}:${layerId}` : "";
+    const layerSuffix = `:${layerId}`;
     const migratedKey = Object.keys(layerNameOverrides).find((storedKey) =>
-      profileSuffix ? storedKey.endsWith(profileSuffix) : false
+      (profileSuffix ? storedKey.endsWith(profileSuffix) : false) || storedKey.endsWith(layerSuffix)
     );
     return migratedKey ? layerNameOverrides[migratedKey] : undefined;
   };

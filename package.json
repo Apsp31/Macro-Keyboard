@@ -1,6 +1,6 @@
 {
   "name": "macrodeck-studio",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "private": true,
   "description": "A friendly desktop app for managing macros on generic USB macro keyboards.",
   "main": "dist-electron/main/main.js",
