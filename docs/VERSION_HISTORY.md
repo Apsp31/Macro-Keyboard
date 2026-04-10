@@ -1,5 +1,18 @@
 # Version History
 
+## 0.1.10
+
+- Audited and corrected more of the `macOS UK` text symbol table.
+- Restored `Windows UK` `@` to the Windows UK position after the earlier quick fix hit the wrong block.
+- `macOS UK` now uses Apple-style positions for the symbols we currently model directly:
+  - `@`
+  - `#`
+  - `\`
+  - `|`
+  - `` ` ``
+  - `~`
+- Existing keys written with the older Mac UK symbol mapping need to be rewritten once to pick up the corrected HID sequences.
+
 ## 0.1.9
 
 - Fixed the `macOS UK` text mapping for `@` so it no longer uses the Windows UK key position.
