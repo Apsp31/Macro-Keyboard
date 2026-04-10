@@ -1,5 +1,10 @@
 # Version History
 
+## 0.1.9
+
+- Fixed the `macOS UK` text mapping for `@` so it no longer uses the Windows UK key position.
+- Existing keys written with the old Mac UK mapping need to be rewritten once to pick up the corrected HID sequence.
+
 ## 0.1.8
 
 - Added real local profile management:

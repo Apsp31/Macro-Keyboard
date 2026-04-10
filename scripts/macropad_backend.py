@@ -148,7 +148,7 @@ TEXT_SYMBOLS_BY_LAYOUT = {
         "*": (0x02, KEY["8"]),
         "(": (0x02, KEY["9"]),
         ")": (0x02, KEY["0"]),
-        "@": (0x02, KEY["quote"]),
+        "@": (0x02, KEY["2"]),
         "~": (0x02, KEY["hash"]),
         "#": (0x00, KEY["hash"]),
     },
