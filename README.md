@@ -61,6 +61,17 @@ Create a production build:
 npm run build
 ```
 
+Create a packaged Windows portable build:
+
+```bash
+npm run dist:win
+```
+
+The packaged output is written to:
+
+- `release/Macro Keyboard Manager <version>.exe`
+- `release/win-unpacked/`
+
 ## Current State
 
 This scaffold already includes:
@@ -96,6 +107,15 @@ $env:PYUSB_LIBUSB_PATH="C:\Program Files\Elgato\StreamDeck\libusb-1.0.dll"
 ```
 
 The Electron app now uses a small Python helper to read and write the keyboard using the same proven protocol.
+
+## Packaging Note
+
+The portable Windows package includes the Electron app and the Python helper script, but real board programming still assumes:
+
+- a working Python runtime is available on the machine, or `MACRODECK_PYTHON` points to one
+- the board's programming interface is accessible through the required Windows/libusb setup
+
+So the packaged app is portable as an application bundle, but the programming path still depends on the same hardware driver/runtime prerequisites documented in:
 
 For the fuller setup and protocol notes, see:
 

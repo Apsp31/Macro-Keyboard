@@ -1,5 +1,12 @@
 # Version History
 
+## 0.1.11
+
+- Added Windows packaging support with `electron-builder`.
+- Added `dist:win` for a portable Windows build and `dist:dir` for an unpacked build folder.
+- Updated the Python helper path resolution so packaged builds can find `macropad_backend.py` from app resources.
+- Produced a packaged portable Windows distribution in the `release` folder.
+
 ## 0.1.10
 
 - Audited and corrected more of the `macOS UK` text symbol table.

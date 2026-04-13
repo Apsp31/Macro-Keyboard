@@ -2,6 +2,7 @@ import { spawn } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
+import { app } from "electron";
 import type {
   DeviceDuplicateLayerRequest,
   DeviceMacroStroke,
@@ -10,11 +11,17 @@ import type {
   DeviceWriteTextRequest
 } from "../../shared/types";
 
-const helperPath = path.resolve(process.cwd(), "scripts", "macropad_backend.py");
-
 interface PythonCommand {
   command: string;
   args: string[];
+}
+
+function getHelperPath(): string {
+  if (app.isPackaged) {
+    return path.join(process.resourcesPath, "scripts", "macropad_backend.py");
+  }
+
+  return path.resolve(process.cwd(), "scripts", "macropad_backend.py");
 }
 
 function getPythonEnvironment(): NodeJS.ProcessEnv {
@@ -52,8 +59,9 @@ function getPythonCandidates(): PythonCommand[] {
 
 function spawnHelper(python: PythonCommand, args: string[]): Promise<string> {
   return new Promise((resolve, reject) => {
+    const helperPath = getHelperPath();
     const child = spawn(python.command, [...python.args, helperPath, ...args], {
-      cwd: process.cwd(),
+      cwd: app.isPackaged ? process.resourcesPath : process.cwd(),
       env: getPythonEnvironment(),
       windowsHide: true
     });
