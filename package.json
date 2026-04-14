@@ -1,6 +1,6 @@
 {
   "name": "macrodeck-studio",
-  "version": "0.1.11",
+  "version": "0.1.12",
   "private": true,
   "productName": "Macro Keyboard Manager",
   "description": "A friendly desktop app for managing macros on generic USB macro keyboards.",
@@ -15,8 +15,9 @@
     "build": "vite build && tsc -p tsconfig.node.json",
     "build:renderer": "vite build",
     "build:main": "tsc -p tsconfig.node.json",
-    "dist:win": "npm run build && electron-builder --win portable",
-    "dist:dir": "npm run build && electron-builder --dir",
+    "build:helper": "powershell -ExecutionPolicy Bypass -File ./scripts/build-helper.ps1",
+    "dist:win": "npm run build && npm run build:helper && electron-builder --win portable",
+    "dist:dir": "npm run build && npm run build:helper && electron-builder --dir",
     "probe:enumerate": "node ./scripts/hid-enumerate.js",
     "probe:feature": "node ./scripts/hid-probe-feature-reports.js",
     "probe:vendor": "node ./scripts/hid-monitor-vendor.js",
@@ -59,10 +60,11 @@
     ],
     "extraResources": [
       {
-        "from": "scripts",
-        "to": "scripts",
+        "from": "release-helper",
+        "to": "helpers",
         "filter": [
-          "macropad_backend.py"
+          "macropad_backend.exe",
+          "libusb-1.0.dll"
         ]
       },
       {

@@ -2,6 +2,9 @@ node_modules/
 dist/
 dist-electron/
 release/
+release-helper/
+build-helper/
+*.spec
 .DS_Store
 Thumbs.db
 *.log

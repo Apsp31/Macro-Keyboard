@@ -1,5 +1,13 @@
 # Version History
 
+## 0.1.12
+
+- Made the packaged Windows app self-contained on the helper-runtime side by bundling:
+  - a compiled `macropad_backend.exe`
+  - a packaged `libusb-1.0.dll`
+- Updated the Electron main-process helper launcher so packaged builds run the bundled helper executable directly instead of depending on an external Python runtime.
+- Added a reproducible helper build step with `scripts/build-helper.ps1`.
+
 ## 0.1.11
 
 - Added Windows packaging support with `electron-builder`.

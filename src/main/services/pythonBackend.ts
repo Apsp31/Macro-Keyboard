@@ -18,17 +18,22 @@ interface PythonCommand {
 
 function getHelperPath(): string {
   if (app.isPackaged) {
-    return path.join(process.resourcesPath, "scripts", "macropad_backend.py");
+    return path.join(process.resourcesPath, "helpers", "macropad_backend.exe");
   }
 
   return path.resolve(process.cwd(), "scripts", "macropad_backend.py");
 }
 
 function getPythonEnvironment(): NodeJS.ProcessEnv {
+  const bundledLibusbPath = app.isPackaged
+    ? path.join(process.resourcesPath, "helpers", "libusb-1.0.dll")
+    : undefined;
+
   return {
     ...process.env,
     PYUSB_LIBUSB_PATH:
       process.env.PYUSB_LIBUSB_PATH ||
+      bundledLibusbPath ||
       "C:\\Program Files\\Elgato\\StreamDeck\\libusb-1.0.dll"
   };
 }
@@ -60,7 +65,9 @@ function getPythonCandidates(): PythonCommand[] {
 function spawnHelper(python: PythonCommand, args: string[]): Promise<string> {
   return new Promise((resolve, reject) => {
     const helperPath = getHelperPath();
-    const child = spawn(python.command, [...python.args, helperPath, ...args], {
+    const command = app.isPackaged ? helperPath : python.command;
+    const commandArgs = app.isPackaged ? args : [...python.args, helperPath, ...args];
+    const child = spawn(command, commandArgs, {
       cwd: app.isPackaged ? process.resourcesPath : process.cwd(),
       env: getPythonEnvironment(),
       windowsHide: true
@@ -92,6 +99,10 @@ function spawnHelper(python: PythonCommand, args: string[]): Promise<string> {
 }
 
 async function runHelper(args: string[]): Promise<string> {
+  if (app.isPackaged) {
+    return spawnHelper({ command: "", args: [] }, args);
+  }
+
   const errors: string[] = [];
 
   for (const python of getPythonCandidates()) {

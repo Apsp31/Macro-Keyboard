@@ -110,12 +110,15 @@ The Electron app now uses a small Python helper to read and write the keyboard u
 
 ## Packaging Note
 
-The portable Windows package includes the Electron app and the Python helper script, but real board programming still assumes:
+The portable Windows package now bundles:
 
-- a working Python runtime is available on the machine, or `MACRODECK_PYTHON` points to one
-- the board's programming interface is accessible through the required Windows/libusb setup
+- the Electron app
+- a compiled `macropad_backend.exe` helper built from the Python backend
+- a packaged `libusb-1.0.dll`
 
-So the packaged app is portable as an application bundle, but the programming path still depends on the same hardware driver/runtime prerequisites documented in:
+That means the packaged app no longer depends on a separate Python runtime just to talk to the board.
+
+The remaining prerequisite is the hardware-side Windows driver setup for the board's programming interface (`Interface 0`), which still needs to be accessible through the required libusb-compatible path.
 
 For the fuller setup and protocol notes, see:
 
