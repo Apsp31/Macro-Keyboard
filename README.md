@@ -134,3 +134,7 @@ Many low-cost macro keyboards identify as normal keyboards and only provide cust
 - A hybrid approach that stores profiles on the PC while using the keyboard as an input trigger surface.
 
 This codebase is intentionally shaped to support all three.
+
+## Consolidated Windows setup
+
+Use Node.js 24 and run `Setup.ps1`, then `Launch.ps1`. Setup installs the locked dependencies and uses Windows certificate trust for the current process; TLS verification remains enabled. Local environments and generated builds are excluded from Git.

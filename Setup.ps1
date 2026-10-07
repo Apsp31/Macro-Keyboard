@@ -1,4 +1,6 @@
 $ErrorActionPreference='Stop'
+$previousNodeOptions=$env:NODE_OPTIONS
+$env:NODE_OPTIONS=($previousNodeOptions+' --use-system-ca').Trim()
 Push-Location $PSScriptRoot
 try {
   & python -m venv .venv
@@ -7,4 +9,4 @@ try {
   if($LASTEXITCODE){throw 'Python dependency installation failed'}
   & npm.cmd ci
   if($LASTEXITCODE){throw 'Node dependency installation failed'}
-} finally { Pop-Location }
+} finally { $env:NODE_OPTIONS=$previousNodeOptions; Pop-Location }
