@@ -8,3 +8,14 @@ build-helper/
 .DS_Store
 Thumbs.db
 *.log
+# Local runtime files
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.env
+.env.*
+!.env.example
+credentials.json
+token.json
+private/

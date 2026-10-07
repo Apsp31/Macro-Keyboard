@@ -1,7 +1,8 @@
 $ErrorActionPreference = "Stop"
 
 $projectRoot = Split-Path -Parent $PSScriptRoot
-$python = "C:\Users\alan\AppData\Local\Programs\Python\Python39\python.exe"
+$python = if ($env:MACRODECK_PYTHON) { $env:MACRODECK_PYTHON } else { Join-Path $projectRoot ".venv\Scripts\python.exe" }
+if (-not (Test-Path -LiteralPath $python)) { $python = (Get-Command python -ErrorAction Stop).Source }
 $helperScript = Join-Path $projectRoot "scripts\macropad_backend.py"
 $releaseDir = Join-Path $projectRoot "release-helper"
 $workDir = Join-Path $projectRoot "build-helper"
@@ -25,13 +26,15 @@ if (-not $libusbCandidates) {
   throw "Could not find libusb-1.0.dll. Set PYUSB_LIBUSB_PATH or install a compatible libusb runtime."
 }
 
-$libusbPath = $libusbCandidates[0]
+$libusbPath = @($libusbCandidates)[0]
 
-Remove-Item -Recurse -Force $releaseDir -ErrorAction SilentlyContinue
-Remove-Item -Recurse -Force $workDir -ErrorAction SilentlyContinue
-Remove-Item -Force $specPath -ErrorAction SilentlyContinue
-New-Item -ItemType Directory -Path $releaseDir | Out-Null
-New-Item -ItemType Directory -Path $workDir | Out-Null
+foreach ($directory in @($releaseDir, $workDir)) {
+  $resolved = [IO.Path]::GetFullPath($directory)
+  if (-not $resolved.StartsWith([IO.Path]::GetFullPath($projectRoot) + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase)) { throw "Unsafe generated-output path: $resolved" }
+  if (Test-Path -LiteralPath $resolved) { Remove-Item -LiteralPath $resolved -Recurse -Force }
+  New-Item -ItemType Directory -Path $resolved | Out-Null
+}
+if (Test-Path -LiteralPath $specPath) { Remove-Item -LiteralPath $specPath -Force }
 
 & $python -m PyInstaller `
   --noconfirm `
@@ -42,6 +45,7 @@ New-Item -ItemType Directory -Path $workDir | Out-Null
   --workpath $workDir `
   --specpath $projectRoot `
   $helperScript
+if ($LASTEXITCODE -ne 0) { throw "PyInstaller failed with exit code $LASTEXITCODE" }
 
 Copy-Item -LiteralPath $libusbPath -Destination (Join-Path $releaseDir "libusb-1.0.dll") -Force
 
