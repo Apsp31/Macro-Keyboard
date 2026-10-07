@@ -138,3 +138,7 @@ This codebase is intentionally shaped to support all three.
 ## Consolidated Windows setup
 
 Use Node.js 24 and run `Setup.ps1`, then `Launch.ps1`. Setup installs the locked dependencies and uses Windows certificate trust for the current process; TLS verification remains enabled. Local environments and generated builds are excluded from Git.
+
+Windows packaging uses the shipped N-API HID binary, verified with this Electron runtime, rather than recompiling it with a machine-specific Visual Studio installation. Run npm.cmd run dist:dir for an unpacked application build.
+
+For a local unsigned validation package, use npm.cmd run dist:dir:unsigned. The regular packaging/signing path still needs Windows symbolic-link privileges for its signing-tool extraction. No signing certificate is configured here.
